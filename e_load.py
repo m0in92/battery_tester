@@ -13,11 +13,6 @@ class E_load:
     """
     def __init__(self, id):
         self.id = id
-        # self.t_wait = t_wait
-        # self.V_cut = V_cut
-        # self.I_cut = I_cut
-        # self.I_dis = I_dis
-        # self.dt = dt
 
     @property
     def load(self):

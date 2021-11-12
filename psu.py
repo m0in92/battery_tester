@@ -24,10 +24,6 @@ class PSU:
     """
     def __init__(self, id, delay = 0.05, init_delay = 0.3):
         self.id = id
-        # self.dt = dt
-        # self.V_upper = V_upper
-        # self.I_charge = I_charge
-        # self.I_cut = I_cut
         self.delay = delay
         self.init_delay = init_delay
 
@@ -106,30 +102,15 @@ class PSU:
             #V
             #----------------------------------------
             V = self.measureV()
-            # self.supply.write('MEASure:VOLTage?')
-            # time.sleep(self.delay)
-            # V = float(self.supply.read())
-            # time.sleep(self.delay)
             #I
             #------------------------------------------
             I = self.measureI()
-            # self.supply.write('MEASure:CURRent?')
-            # time.sleep(self.delay)
-            # I = float(self.supply.read())
-            # time.sleep(self.delay)
             # W
             #---------------------------------------------
             W = self.measureW()
-            # self.supply.write('MEASure:POWEr?')
-            # time.sleep(self.delay)
-            # W = float(self.supply.read())
-            # time.sleep(self.delay)
             #Status
             #------------------------------------------------
             status = self.readStatus()
-            # self.supply.write('SYSTem:STATus?')
-            # time.sleep(self.delay)
-            # status = self.supply.read()
             status = self.hex_to_bin(status) #convert hexadecimal number to binary
             status = self.CC_or_CV(status) #Determine if CC or CV mode
             status = f'{status}_charge'

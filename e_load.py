@@ -109,7 +109,7 @@ class E_load:
             # Update list
             print(t, V, I)
             # Measuring break
-            self.update_lists(t_list, t, V_list, V, I_list, I, status, status_list, status)
+            self.update_lists(t_list, t, V_list, V, I_list, I, status_list, status)
             # Measurement break
             time.sleep(dt)
 

@@ -56,7 +56,7 @@ class Cycling:
                                                                         self.I_charge,
                                                                         self.I_cut)
             df_charge = pd.DataFrame({
-                'cycle_no': np.zeros(len(t_list)),
+                'cycle_no': cycle * np.ones(len(t_list)),
                 'status': status_list,
                 't [s]': t_list,
                 'V [V]': V_list,
@@ -69,13 +69,13 @@ class Cycling:
             time_elapsed = time.time() - t_start  #time elasped since timer was started
             #Step 3,4,5,6
             #---------------------------------------------------------------------------
-            t_list, V_list, I_list = rigol.cycle(self.t_wait,
+            t_list, V_list, I_list, status_list = rigol.cycle(self.t_wait,
                                                  self.V_cut,
                                                  self.I_cut,
                                                  self.I_dis,
                                                  self.dt)
             df_discharge = pd.DataFrame({
-                'cycle_no': np.zeros(len(t_list)),
+                'cycle_no': cycles * np.ones(len(t_list)),
                 'status': status_list,
                 't [s]': t_list,
                 'V [V]': V_list,

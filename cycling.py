@@ -79,7 +79,8 @@ class Cycling:
                 self.V_cut,
                 self.I_cut,
                 self.I_dis,
-                self.dt)
+                self.dt,
+                cap_charge_list[-1])
             df_discharge = pd.DataFrame({
                 'cycle_no': cycle * np.ones(len(t_list)),
                 'status': status_list,

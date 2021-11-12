@@ -58,17 +58,23 @@ class E_load:
         t_list, V_list, I_list, status_list = [], [], [], []
         cap_charge_list, cap_discharge_list = [], []
         t_start = time.time()
+        cap_discharge = 0
+        counter = 0
         # Initial wait
         # -------------------------------------
         while t < t_wait:
+            if counter == 0:
+                t_last = 0
+            else:
+                t_last = t
             t = time.time() - t_start
             V = self.measureV()
             I = 0
             cap_charge = cap_charge_init
-            cap_discharge += I/3600
+            cap_discharge += I*(t - t_last)/3600
             status = 'wait_between'
             # Update list
-            print(t, V, I, status)
+            print(t, V, I, status, cap_charge, cap_discharge)
             self.update_lists(t_list, t,
                               V_list, V,
                               I_list, I,
@@ -83,14 +89,15 @@ class E_load:
         self.set_CC(I_dis)
         self.turn_on_load()
         while V >= V_cut:
+            t_last = t
             t = time.time() - t_start
             V = self.measureV()
             I = self.measureI()
             status = 'CC_discharge'
             cap_charge = cap_charge_init
-            cap_discharge += I/3600
+            cap_discharge += I*(t - t_last)/3600
             # Update list
-            print(t, V, I, status)
+            print(t, V, I, status, cap_charge, cap_discharge)
             self.update_lists(t_list, t,
                               V_list, V,
                               I_list, I,
@@ -107,14 +114,15 @@ class E_load:
         self.turn_on_load()
 
         while I >= I_cut:
+            t_last = t
             t = time.time() - t_start
             V = self.measureV()
             I = self.measureI()
             status = 'CV_discharge'
             cap_charge = cap_charge_init
-            cap_discharge += I/3600
+            cap_discharge += I*(t - t_last)/3600
             # Update list
-            print(t, V, I, status)
+            print(t, V, I, status, cap_charge, cap_discharge)
             self.update_lists(t_list, t,
                               V_list, V,
                               I_list, I,
@@ -128,14 +136,15 @@ class E_load:
         #Last waiting period
         t_end = t
         while t < t_wait + t_end:
+            t_last = t
             t = time.time() - t_start
             V = self.measureV()
             I = 0
             status = 'wait_end'
             cap_charge = cap_charge_init
-            cap_discharge += I/3600
+            cap_discharge += I*(t - t_last)/3600
             # Update list
-            print(t, V, I)
+            print(t, V, I, cap_charge, cap_discharge)
             # Measuring break
             self.update_lists(t_list, t,
                               V_list, V,

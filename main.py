@@ -14,7 +14,7 @@ I_cut = 0.1
 t_wait = 5*60
 V_cut = 2
 I_dis = 1.5
-t_wait_init= 5*60
+t_wait_init= 5
 cycles = 1
 
 psu_id = 'USB0::0xF4EC::0x1410::SPD13DCQ4R0571::INSTR'

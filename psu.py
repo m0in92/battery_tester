@@ -98,9 +98,13 @@ class PSU:
         time.sleep(self.init_delay)
         I = I_charge
         cap_charge = 0
-        cap_discahrge = 0
+        counter = 0
         while I >= I_cut:
             #time
+            if counter == 0:
+                t_last = 0
+            else:
+                t_last = t
             t = time.time() - t_start
             #V
             #----------------------------------------
@@ -119,11 +123,11 @@ class PSU:
             status = f'{status}_charge'
             #capacities
             #-------------------------------------------------------
-            cap_charge += I/3600
+            cap_charge += I * (t - t_last)/3600
             cap_discharge = 0
 
             #Update list
-            print(t, V, I, W, status)
+            print(t, V, I, W, status, cap_charge, cap_discharge)
             t_list.append(t)
             V_list.append(V)
             I_list.append(I)
@@ -133,6 +137,7 @@ class PSU:
             cap_discharge_list.append(cap_discharge)
             #Wait for the next time increment
             time.sleep(dt - 5*self.delay - self.init_delay)
+            counter += 1
 
         #Turn off the power supply
         self.turn_psu_off()

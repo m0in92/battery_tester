@@ -2,7 +2,6 @@ import pyvisa
 import time
 
 
-
 class PSU:
     """
     ------------------------------
@@ -23,12 +22,12 @@ class PSU:
     rm = pyvisa.ResourceManager()
     print(rm.list_resources())
     """
-    def __init__(self, id, dt, V_upper, I_charge, I_cut, delay = 0.05, init_delay = 0.3):
+    def __init__(self, id, delay = 0.05, init_delay = 0.3):
         self.id = id
-        self.dt = dt
-        self.V_upper = V_upper
-        self.I_charge = I_charge
-        self.I_cut = I_cut
+        # self.dt = dt
+        # self.V_upper = V_upper
+        # self.I_charge = I_charge
+        # self.I_cut = I_cut
         self.delay = delay
         self.init_delay = init_delay
 
@@ -37,20 +36,20 @@ class PSU:
         self.supply.write_termination = '\n'
         self.supply.read_termination = '\n'
 
-    def set_psu_VI(self):
+    def set_psu_VI(self, V_upper, I_charge):
         # Set the channel's voltage and current
         time.sleep(0.05)
-        self.supply.write(f'VOLTage {self.V_upper}')
+        self.supply.write(f'VOLTage {V_upper}')
         time.sleep(0.05)
-        self.supply.write(f'CURRent {self.I_charge}')
+        self.supply.write(f'CURRent {I_charge}')
         time.sleep(0.05)
 
-    def turn_psu_on(self, delay = 0.04):
-        time.sleep(delay)
+    def turn_psu_on(self):
+        time.sleep(self.delay)
         self.supply.write('OUTP CH1,ON')
 
-    def turn_psu_off(self, delay = 0.04):
-        time.sleep(delay)
+    def turn_psu_off(self):
+        time.sleep(self.delay)
         self.supply.write('OUTP CH1,OFF')
 
     def hex_to_bin(self, hex_string):
@@ -62,9 +61,36 @@ class PSU:
         else:
             return 'CC'
 
-    def cycle(self):
+    def measureV(self):
+        self.supply.write('MEASure:VOLTage?')
+        time.sleep(self.delay)
+        V = float(self.supply.read())
+        time.sleep(self.delay)
+        return V
+
+    def measureI(self):
+        self.supply.write('MEASure:CURRent?')
+        time.sleep(self.delay)
+        I = float(self.supply.read())
+        time.sleep(self.delay)
+        return I
+
+    def measureW(self):
+        self.supply.write('MEASure:POWEr?')
+        time.sleep(self.delay)
+        W = float(self.supply.read())
+        time.sleep(self.delay)
+        return W
+
+    def readStatus(self):
+        self.supply.write('SYSTem:STATus?')
+        time.sleep(self.delay)
+        status = self.supply.read()
+        return status
+
+    def cycle(self, dt, V_upper, I_charge, I_cut):
         # Set the channel's voltage and current
-        self.set_psu_VI()
+        self.set_psu_VI(V_upper, I_charge)
 
         # Initialization of measuring parameters
         t_list, V_list, I_list, W_list, status_list = [],[],[],[],[]
@@ -73,31 +99,40 @@ class PSU:
         self.turn_psu_on()
         t_start = time.time()
         time.sleep(self.init_delay)
-        I = self.I_charge
-        while I >= self.I_cut:
+        I = I_charge
+        while I >= I_cut:
             #time
             t = time.time() - t_start
             #V
-            self.supply.write('MEASure:VOLTage?')
-            time.sleep(self.delay)
-            V = float(self.supply.read())
-            time.sleep(self.delay)
+            #----------------------------------------
+            V = self.measureV()
+            # self.supply.write('MEASure:VOLTage?')
+            # time.sleep(self.delay)
+            # V = float(self.supply.read())
+            # time.sleep(self.delay)
             #I
-            self.supply.write('MEASure:CURRent?')
-            time.sleep(self.delay)
-            I = float(self.supply.read())
-            time.sleep(self.delay)
-            # I
-            self.supply.write('MEASure:POWEr?')
-            time.sleep(self.delay)
-            W = float(self.supply.read())
-            time.sleep(self.delay)
+            #------------------------------------------
+            I = self.measureI()
+            # self.supply.write('MEASure:CURRent?')
+            # time.sleep(self.delay)
+            # I = float(self.supply.read())
+            # time.sleep(self.delay)
+            # W
+            #---------------------------------------------
+            W = self.measureW()
+            # self.supply.write('MEASure:POWEr?')
+            # time.sleep(self.delay)
+            # W = float(self.supply.read())
+            # time.sleep(self.delay)
             #Status
-            self.supply.write('SYSTem:STATus?')
-            time.sleep(self.delay)
-            status = self.supply.read()
+            #------------------------------------------------
+            status = self.readStatus()
+            # self.supply.write('SYSTem:STATus?')
+            # time.sleep(self.delay)
+            # status = self.supply.read()
             status = self.hex_to_bin(status) #convert hexadecimal number to binary
             status = self.CC_or_CV(status) #Determine if CC or CV mode
+            status = f'{status}_charge'
 
             #Update list
             print(t, V, I, W, status)
@@ -107,7 +142,7 @@ class PSU:
             W_list.append(W)
             status_list.append(status)
             #Wait for the next time increment
-            time.sleep(self.dt - 5*self.delay - self.init_delay)
+            time.sleep(dt - 5*self.delay - self.init_delay)
 
         #Turn off the power supply
         self.turn_psu_off()

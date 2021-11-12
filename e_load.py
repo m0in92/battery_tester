@@ -43,15 +43,20 @@ class E_load:
                      t_list, t,
                      V_list, V,
                      I_list, I,
-                     status_list, status):
+                     status_list, status,
+                     cap_charge_list, cap_charge,
+                     cap_discharge_list, cap_discharge):
         t_list.append(t)
         V_list.append(V)
         I_list.append(I)
         status_list.append(status)
+        cap_charge_list.append(cap_charge)
+        cap_discharge_list.append(cap_discharge)
 
-    def cycle(self, t_wait, V_cut, I_cut, I_dis, dt):
+    def cycle(self, t_wait, V_cut, I_cut, I_dis, dt, cap_charge_init):
         t = 0
         t_list, V_list, I_list, status_list = [], [], [], []
+        cap_charge_list, cap_discharge_list = [], []
         t_start = time.time()
         # Initial wait
         # -------------------------------------
@@ -59,10 +64,17 @@ class E_load:
             t = time.time() - t_start
             V = self.measureV()
             I = 0
+            cap_charge = cap_charge_init
+            cap_discharge += I/3600
             status = 'wait_between'
             # Update list
             print(t, V, I, status)
-            self.update_lists(t_list, t, V_list, V, I_list, I, status_list, status)
+            self.update_lists(t_list, t,
+                              V_list, V,
+                              I_list, I,
+                              status_list, status,
+                              cap_charge_list, cap_charge,
+                              cap_discharge_list, cap_discharge)
             # Meaurement break
             time.sleep(dt)
 
@@ -75,9 +87,16 @@ class E_load:
             V = self.measureV()
             I = self.measureI()
             status = 'CC_discharge'
+            cap_charge = cap_charge_init
+            cap_discharge += I/3600
             # Update list
             print(t, V, I, status)
-            self.update_lists(t_list, t, V_list, V, I_list, I, status_list, status)
+            self.update_lists(t_list, t,
+                              V_list, V,
+                              I_list, I,
+                              status_list, status,
+                              cap_charge_list, cap_charge,
+                              cap_discharge_list, cap_discharge)
             #Meauring break
             time.sleep(dt)
         self.turn_off_load()
@@ -92,9 +111,16 @@ class E_load:
             V = self.measureV()
             I = self.measureI()
             status = 'CV_discharge'
+            cap_charge = cap_charge_init
+            cap_discharge += I/3600
             # Update list
             print(t, V, I, status)
-            self.update_lists(t_list, t, V_list, V, I_list, I, status_list, status)
+            self.update_lists(t_list, t,
+                              V_list, V,
+                              I_list, I,
+                              status_list, status,
+                              cap_charge_list, cap_charge,
+                              cap_discharge_list, cap_discharge)
             #Measuring break
             time.sleep(dt)
         self.turn_off_load()
@@ -106,11 +132,18 @@ class E_load:
             V = self.measureV()
             I = 0
             status = 'wait_end'
+            cap_charge = cap_charge_init
+            cap_discharge += I/3600
             # Update list
             print(t, V, I)
             # Measuring break
-            self.update_lists(t_list, t, V_list, V, I_list, I, status_list, status)
+            self.update_lists(t_list, t,
+                              V_list, V,
+                              I_list, I,
+                              status_list, status,
+                              cap_charge_list, cap_charge,
+                              cap_discharge_list, cap_discharge)
             # Measurement break
             time.sleep(dt)
 
-        return t_list, V_list, I_list, status_list
+        return t_list, V_list, I_list, status_list, cap_charge_list, cap_discharge_list

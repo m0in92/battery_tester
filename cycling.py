@@ -45,22 +45,27 @@ class Cycling:
             't [s]': [],
             'V [V]': [],
             'I [A]': [],
+            'cap_charge [Ahr]': [],
+            'cap_discharge [Ahr]': []
         })
         for cycle in range(1,self.cycles + 1):
 
             t_start = time.time() # Start_timer
             #Step 2 (CC_CV charging)
             #----------------------------------------------------------------------------
-            t_list, V_list, I_list, W_list, status_list = siglent.cycle(self.dt,
-                                                                        self.V_upper,
-                                                                        self.I_charge,
-                                                                        self.I_cut)
+            t_list,V_list,I_list,W_list, status_list, cap_charge_list, cap_discharge_list = siglent.cycle(
+                self.dt,
+                self.V_upper,
+                self.I_charge,
+                self.I_cut)
             df_charge = pd.DataFrame({
                 'cycle_no': cycle * np.ones(len(t_list)),
                 'status': status_list,
                 't [s]': t_list,
                 'V [V]': V_list,
                 'I [A]': I_list,
+                'cap_charge [Ahr]': cap_charge_list,
+                'cap_discharge [Ahr]': cap_discharge_list
             })
 
             df = df.append(df_charge, ignore_index= True)
@@ -69,17 +74,20 @@ class Cycling:
             time_elapsed = time.time() - t_start  #time elasped since timer was started
             #Step 3,4,5,6
             #---------------------------------------------------------------------------
-            t_list, V_list, I_list, status_list = rigol.cycle(self.t_wait,
-                                                 self.V_cut,
-                                                 self.I_cut,
-                                                 self.I_dis,
-                                                 self.dt)
+            t_list, V_list, I_list, status_list, cap_charge_list, cap_discharge_list = rigol.cycle(
+                self.t_wait,
+                self.V_cut,
+                self.I_cut,
+                self.I_dis,
+                self.dt)
             df_discharge = pd.DataFrame({
-                'cycle_no': cycles * np.ones(len(t_list)),
+                'cycle_no': cycle * np.ones(len(t_list)),
                 'status': status_list,
                 't [s]': t_list,
                 'V [V]': V_list,
                 'I [A]': I_list,
+                'cap_charge [Ahr]': cap_charge_list,
+                'cap_discharge [Ahr]': cap_discharge_list
             })
             df_discharge['t [s]'] = df_discharge['t [s]'] + time_elapsed #Add charging time to discharge times
             df = df.append(df_discharge, ignore_index= True)

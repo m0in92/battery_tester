@@ -90,12 +90,15 @@ class PSU:
 
         # Initialization of measuring parameters
         t_list, V_list, I_list, W_list, status_list = [],[],[],[],[]
+        cap_charge_list, cap_discharge_list = [], []
 
         #Turn the power supply on and start charging
         self.turn_psu_on()
         t_start = time.time()
         time.sleep(self.init_delay)
         I = I_charge
+        cap_charge = 0
+        cap_discahrge = 0
         while I >= I_cut:
             #time
             t = time.time() - t_start
@@ -114,6 +117,10 @@ class PSU:
             status = self.hex_to_bin(status) #convert hexadecimal number to binary
             status = self.CC_or_CV(status) #Determine if CC or CV mode
             status = f'{status}_charge'
+            #capacities
+            #-------------------------------------------------------
+            cap_charge += I/3600
+            cap_discharge = 0
 
             #Update list
             print(t, V, I, W, status)
@@ -122,10 +129,12 @@ class PSU:
             I_list.append(I)
             W_list.append(W)
             status_list.append(status)
+            cap_charge_list.append(cap_charge)
+            cap_discharge_list.append(cap_discharge)
             #Wait for the next time increment
             time.sleep(dt - 5*self.delay - self.init_delay)
 
         #Turn off the power supply
         self.turn_psu_off()
 
-        return t_list,V_list,I_list,W_list, status_list
+        return t_list,V_list,I_list,W_list, status_list, cap_charge_list, cap_discharge_list

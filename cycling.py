@@ -1,6 +1,7 @@
 from psu import PSU
 from e_load import E_load
 import time
+import numpy as np
 import pandas as pd
 
 class Cycling:
@@ -37,43 +38,50 @@ class Cycling:
         #Step 1
         time.sleep(self.t_wait_init)
 
+        # initialize empty dataframe
+        df = pd.DataFrame({
+            'cycle_no': [],
+            'status': [],
+            't [s]': [],
+            'V [V]': [],
+            'I [A]': [],
+        })
         for cycle in range(1,self.cycles + 1):
 
-            #initialize empty datafram
-            df = pd.DataFrame({
-                't [s]': [],
-                'V [V]': [],
-                'I [A]': [],
-                'status': []
-            })
-
+            t_start = time.time() # Start_timer
             #Step 2 (CC_CV charging)
+            #----------------------------------------------------------------------------
             t_list, V_list, I_list, W_list, status_list = siglent.cycle(self.dt,
                                                                         self.V_upper,
                                                                         self.I_charge,
                                                                         self.I_cut)
             df_charge = pd.DataFrame({
+                'cycle_no': np.zeros(len(t_list)),
+                'status': status_list,
                 't [s]': t_list,
                 'V [V]': V_list,
                 'I [A]': I_list,
-                'status': status_list
             })
 
             df = df.append(df_charge, ignore_index= True)
             del df_charge
 
+            time_elapsed = time.time() - t_start  #time elasped since timer was started
             #Step 3,4,5,6
+            #---------------------------------------------------------------------------
             t_list, V_list, I_list = rigol.cycle(self.t_wait,
                                                  self.V_cut,
                                                  self.I_cut,
                                                  self.I_dis,
                                                  self.dt)
             df_discharge = pd.DataFrame({
+                'cycle_no': np.zeros(len(t_list)),
+                'status': status_list,
                 't [s]': t_list,
                 'V [V]': V_list,
                 'I [A]': I_list,
-                'status': status_list
             })
+            df_discharge['t [s]'] = df_discharge['t [s]'] + time_elapsed #Add charging time to discharge times
             df = df.append(df_discharge, ignore_index= True)
             del df_discharge
         return df

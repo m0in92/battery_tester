@@ -4,11 +4,11 @@ import time
 #Input parameters
 #--------------------------------------------------------
 dt = 10
-V_upper = 3.65 # battery upper terminal voltage
+V_upper = 3.4 # battery upper terminal voltage
 C_rate = 1.5
 I_charge = I_dis = C_rate #Discharge and charge currents
 I_cut = 0.1
-t_wait = 5 #Wait period in between the charge and discharge steps within cycle
+t_wait = 1 #Wait period in between the charge and discharge steps within cycle
 V_cut = 3.3 # battery lower terminal voltage
 t_wait_init= 5 #intial wait in seconds
 cycles = 1
@@ -39,17 +39,17 @@ cycle1.discharge_CC(return_output= False)
 
 """
 Step 2: CC-charging
-##Fully charge battery after waiting for 2 hours
+##Fully charge battery at C/30 after waiting for 2 hours
 """
 time.sleep(t_wait)
 df = cycle1.charge_CC(measuring_instrument= 'eload',return_output= True)
-df.to_csv(f'data/{filename_charge}', index= False)
+df.to_csv(f'data/{filename_charge}.csv', index= False)
 
 """
-Step 2: CC-charging
-##Fully charge battery after waiting for 2 hours
+Step 3: CC-discharging
+##Fully discharge battery after waiting for 2 hours
 """
 time.sleep(t_wait)
-df = cycle1.charge_CC(return_output= True)
-df.to_csv(f'data/{filename_discharge}', index= False)
+df = cycle1.discharge_CC(return_output= True)
+df.to_csv(f'data/{filename_discharge}.csv', index= False)
 

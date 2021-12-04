@@ -181,15 +181,16 @@ class PSU:
 
         # Start charging until upper terminal voltage criteria is met
         #------------------------------------------------------------------------------
-        V = self.measureV() # create a current voltage variable
+        V_psu = self.measureV() # create a current voltage variable
         cap_charge = 0 # initialize the charge capacity
         counter = 0
         t_prev = 0 # intialize a variable that contains the previous time step's time needed for cap measurements
-        while V <= V_upper:
+        while V_psu <= V_upper:
             t = time.time() - t_start  # variable that holds the current time in seconds
             if measuring_instr == 'same':
-                V = self.measureV()
+                V = V_psu = self.measureV()
             else:
+                V_psu = self.measureV()
                 V = measur_instr.measureV()
             I = self.measureI() # Measure current
             # status
@@ -230,7 +231,6 @@ class PSU:
                 't': t_list,
                 'I': I_list,
                 'V': V_list,
-                'W': W_list,
                 'status': status_list,
                 'cap_charge': cap_charge_list,
                 'cap_discharge': cap_discharge_list

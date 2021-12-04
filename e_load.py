@@ -1,5 +1,6 @@
 import time
 import pyvisa
+import pandas as pd
 
 
 class E_load:

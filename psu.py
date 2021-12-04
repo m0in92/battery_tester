@@ -1,5 +1,7 @@
 import pyvisa
 import time
+import pandas as pd
+from e_load import E_load
 
 
 class PSU:
@@ -143,3 +145,94 @@ class PSU:
         self.turn_psu_off()
 
         return t_list,V_list,I_list,W_list, status_list, cap_charge_list, cap_discharge_list
+
+
+    def CC_charge(self, dt, V_upper, I_charge, measuring_instr = 'same', return_output = True):
+        """
+        Instructs the psu to perform the CC_charging step
+        :param dt: time increment where the measurements should be taken
+        :param V_upper: The battery's upper terminal voltage
+        :param I_charge: The battery's charging current
+        :param measuring_instr: Determines whether the measuring instrument is the psu or another instrument.
+        Acceptable arguments are 'same' or other instrument's id.
+        :param return_output: If or not to return the charging cycle information
+        :return: pandas DataFrame containing current, voltage, power, status, and capacities
+        """
+
+        # Set channel's charging current and upper battery terminal voltage
+        #-------------------------------------------------------------------------------
+        self.set_psu_VI(V_upper=V_upper, I_charge=I_charge)
+
+        #initialize list containing measuring quantities and an empty pandas DataFrame
+        #-------------------------------------------------------------------------------
+        if return_output:
+            t_list, I_list, V_list, status_list = [],[],[],[]
+            cap_charge_list = []
+            cap_discharge_list = []
+
+        if measuring_instr != 'same':
+            measur_instr = E_load(measuring_instr) # create an instance of the measuring instrument's class
+
+        #turn on the power supply and wait for the initial delay time
+        #-------------------------------------------------------------------------------
+        self.turn_psu_on() # turn on psu
+        time.sleep(self.init_delay) #init delay otherwise there would be some issues reading values from Siglent
+        t_start = time.time()  # start timer
+
+        # Start charging until upper terminal voltage criteria is met
+        #------------------------------------------------------------------------------
+        V = self.measureV() # create a current voltage variable
+        cap_charge = 0 # initialize the charge capacity
+        counter = 0
+        t_prev = 0 # intialize a variable that contains the previous time step's time needed for cap measurements
+        while V <= V_upper:
+            t = time.time() - t_start  # variable that holds the current time in seconds
+            if measuring_instr == 'same':
+                V = self.measureV()
+            else:
+                V = measur_instr.measureV()
+            I = self.measureI() # Measure current
+            # status
+            status = self.readStatus()
+            status = self.hex_to_bin(status)  # convert hexadecimal number to binary
+            status = self.CC_or_CV(status)  # Determine if CC or CV mode
+            status = f'{status}_charge'
+            #measure capacity
+            cap_charge += (t - t_prev) * I / 3600
+            cap_discharge = 0
+
+            if return_output:
+                #update lists
+                t_list.append(t)
+                V_list.append(V)
+                I_list.append(I)
+                status_list.append(status)
+                cap_charge_list.append(cap_charge)
+                cap_discharge_list.append(cap_discharge)
+
+
+            # Wait for the next time increment
+            time.sleep(dt - 12 * self.delay)
+
+            #Update relevant variables for next iteration
+            t_prev = t  # Update the previous time
+            counter += 1  # Update counter
+
+            # Print on the console
+            print(t, I, V, status, cap_charge, cap_discharge)
+
+        # Turn off the power supply
+        self.turn_psu_off()
+
+        # Create a pandas DataFrame
+        if return_output:
+            df = pd.DataFrame({
+                't': t_list,
+                'I': I_list,
+                'V': V_list,
+                'W': W_list,
+                'status': status_list,
+                'cap_charge': cap_charge_list,
+                'cap_discharge': cap_discharge_list
+            })
+            return df

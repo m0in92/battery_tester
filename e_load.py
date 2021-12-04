@@ -156,3 +156,68 @@ class E_load:
             time.sleep(dt)
 
         return t_list, V_list, I_list, status_list, cap_charge_list, cap_discharge_list
+
+    def CC_discharge(self, dt, V_lower, I_dis,  return_output = True):
+        """
+        Instructs the e-load to perform CC discharge
+        :param dt: time increment to take the measurement readings
+        :param V_lower: battery's lower terminal voltage
+        :param I_dis: battery's discharge current
+        :param return_output: If or not to return the CC-charge information
+        :return: pandas DataFrame containing current, voltage, power, status, and capaciti
+        """
+
+        if return_output:
+            #intialize the lists containing the relevant information
+            #--------------------------------------------------------------------------------
+            t_list, V_list, I_list, status_list = [], [], [], []
+            cap_charge_list, cap_discharge_list = [], []
+
+        self.set_CC(I_dis= I_dis) #set the discharging current
+        self.turn_on_load()
+
+        t_start = time.time() #start timer
+        cap_discharge = 0
+        counter = 0
+        t_prev = 0 # intialize the previous time step time, which is used for capacity measurements
+        V = self.measureV()
+        while V >= V_lower:
+            t = time.time() - t_start
+            I = self.measureI()
+            V = self.measureV()
+            status = "CC_discharge"
+            cap_charge = 0
+            cap_discharge += (t - t_prev) * I / 3600
+
+            # update lists
+            if return_output:
+                t_list.append(t)
+                I_list.append(I)
+                V_list.append(V)
+                status_list.append(status)
+                cap_charge_list.append(cap_charge)
+                cap_discharge_list.append(cap_discharge)
+
+            #Update relevant variables
+            counter += 1
+            t_prev = t
+
+            #print in the console
+            print(t, I, V, status, cap_charge, cap_discharge)
+
+            #wait for the next time delay
+            time.sleep(dt)
+
+        self.turn_off_load() #turn off load
+
+        # Create a pandas DataFrame
+        if return_output:
+            df = pd.DataFrame({
+                't': t_list,
+                'I': I_list,
+                'V': V_list,
+                'status': status_list,
+                'cap_charge': cap_charge_list,
+                'cap_discharge': cap_discharge_list
+            })
+            return df

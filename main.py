@@ -14,8 +14,8 @@ I_cut = 0.1
 t_wait = 5*60
 V_cut = 2
 I_dis = 1.5
-t_wait_init= 5
-cycles = 1
+t_wait_init= 1
+cycles = 2
 
 psu_id = 'USB0::0xF4EC::0x1410::SPD13DCQ4R0571::INSTR'
 load_id = 'USB0::0x1AB1::0x0E11::DL3A222600541::INSTR'
@@ -32,4 +32,4 @@ cycle1 = Cycling(t_wait_init= t_wait_init,
                  V_cut= V_cut,
                  I_dis= I_dis)
 df = cycle1.cycle()
-df.to_csv('data/test_cycling.csv', index = False)
+df.to_csv('data/ECM_parameter.csv', index = False)

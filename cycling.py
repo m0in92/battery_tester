@@ -31,7 +31,7 @@ class Cycling:
         :return:
         """
         #Define instruments
-        siglent = PSU(id= self.psu_id,)
+        siglent = PSU(id= self.psu_id)
 
         rigol = E_load(self.e_load_id)
 
@@ -95,7 +95,7 @@ class Cycling:
             del df_discharge
         return df
 
-    def discharge(self):
+    def discharge(self, return_ouput = True):
         rigol = E_load(self.e_load_id)
 
         # Step 1
@@ -112,9 +112,10 @@ class Cycling:
             'I [A]': I_list,
             'status': status_list
         })
-        return df_discharge
+        if return_ouput:
+            return df_discharge
 
-    def charge(self):
+    def charge(self, return_output = True):
         siglent = PSU(self.psu_id)
 
         t_list, V_list, I_list, W_list, status_list = siglent.cycle(self.dt,
@@ -127,7 +128,37 @@ class Cycling:
             'I [A]': I_list,
             'status': status_list
         })
-        return df_charge
+        if return_output:
+            return df_charge
+
+    def charge_CC(self, measuring_instrument, return_output):
+        siglent = PSU(self.psu_id)
+
+        if measuring_instrument == 'eload':
+            measuring_instr = self.e_load_id
+        else:
+            measuring_instr = 'same'
+
+        df = siglent.CC_charge(dt= self.dt,
+                               V_upper= self.V_upper,
+                               I_charge= self.I_charge,
+                               measuring_instr= measuring_instr,
+                               return_output = return_output)
+
+        if return_output:
+            return df
+
+    def discharge_CC(self, return_output):
+
+        rigol = E_load(self.e_load_id)
+
+        df = rigol.CC_discharge(dt = self.dt,
+                                V_lower= self.V_cut,
+                                I_dis= self.I_dis,
+                                return_output = return_output)
+
+        if return_output:
+            return df
 
 
 

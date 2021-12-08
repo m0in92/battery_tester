@@ -5,8 +5,25 @@ import numpy as np
 import pandas as pd
 
 class Cycling:
+    """
+    A class object for various cycling protocols.
+    """
     def __init__(self, t_wait_init, psu_id, e_load_id,
                  cycles, dt, V_upper, I_charge, I_cut, t_wait, V_cut, I_dis):
+        """
+        Constructor of cycling class.
+        :param t_wait_init: The initial wait period
+        :param psu_id: psu id
+        :param e_load_id: e_load id
+        :param cycles: Number of cycles required
+        :param dt: measuring interval
+        :param V_upper: Battery upper terminal voltage
+        :param I_charge: Battery charging current
+        :param I_cut: Battery cut-off current at the CV-step
+        :param t_wait: The wait period between the battery's charging and discharging steps
+        :param V_cut: Battery lower terminal voltage
+        :param I_dis: Battery discharging current
+        """
         self.t_wait_init = t_wait_init
         self.psu_id = psu_id
         self.e_load_id = e_load_id
@@ -21,6 +38,8 @@ class Cycling:
 
     def cycle(self):
         """
+        CC-CV cycling
+        -----------------------------------------------------------
         Cycling Steps (CC-CV):
         1. Wait for some time (t_wait_init)
         2. CC and CV charge
@@ -28,7 +47,7 @@ class Cycling:
         4. CC-CV discharge
         5. Wait for some time (t_wait)
         6. Repeat steps 2-5 for n cycles
-        :return:
+        :return: pandas Dataframe on the cycling information (potential, current, and capacities).
         """
         #Define instruments
         siglent = PSU(id= self.psu_id)
@@ -96,6 +115,11 @@ class Cycling:
         return df
 
     def discharge(self, return_ouput = True):
+        """
+        Battery CC-CV discharge
+        :param return_ouput: if True, the function returns the relevant cycling information.
+        :return: pandas Dataframe with relevant cycling information
+        """
         rigol = E_load(self.e_load_id)
 
         # Step 1
@@ -116,6 +140,11 @@ class Cycling:
             return df_discharge
 
     def charge(self, return_output = True):
+        """
+        Battery CC-CV charging
+        :param return_output: if True, the function returns the relevant cycling information.
+        :return: pandas Dataframe with relevant cycling information
+        """
         siglent = PSU(self.psu_id)
 
         t_list, V_list, I_list, W_list, status_list = siglent.cycle(self.dt,
@@ -132,6 +161,12 @@ class Cycling:
             return df_charge
 
     def charge_CC(self, measuring_instrument, return_output):
+        """
+        Battery CC charging
+        :param measuring_instrument: the measurement instrument
+        :param return_output: if True, the function returns the relevant cycling information.
+        :return: pandas Dataframe with relevant cycling information
+        """
         siglent = PSU(self.psu_id)
 
         if measuring_instrument == 'eload':
@@ -149,6 +184,11 @@ class Cycling:
             return df
 
     def discharge_CC(self, return_output):
+        """
+        Battery CC discharge
+        :param return_output: if True, the function returns the relevant cycling information.
+        :return: pandas Dataframe with relevant cycling information
+        """
 
         rigol = E_load(self.e_load_id)
 

@@ -51,9 +51,20 @@ class PSU:
         self.supply.write('OUTP CH1,OFF')
 
     def hex_to_bin(self, hex_string):
+        """
+        Converts to hex to binary. Used for extracting the operation mode of the instrument
+        :param hex_string: string in hexa_deciminal format
+        :return: string in binary format
+        """
         return bin(int(hex_string, 16)).zfill(8)
 
     def CC_or_CV(self, bin_string):
+        """
+        Determines the psu (Siglent 1168) is in constant-current (CC) or
+        constant-voltage (CV) mode.
+        :param bin_string: string in binary format
+        :return: string "CC" or "CV"
+        """
         if int(bin_string[-1]) == 0:
             return 'CV'
         else:
@@ -87,6 +98,14 @@ class PSU:
         return status
 
     def cycle(self, dt, V_upper, I_charge, I_cut):
+        """
+        CC-CV charging
+        :param dt: measurement interval
+        :param V_upper: Battery upper terminal voltage
+        :param I_charge: Battery charging current
+        :param I_cut: Battery cut-off current for the CV step
+        :return: potential, current, status, and capacities during battery CC-CV charging
+        """
         # Set the channel's voltage and current
         self.set_psu_VI(V_upper, I_charge)
 
@@ -182,10 +201,11 @@ class PSU:
         # Start charging until upper terminal voltage criteria is met
         #------------------------------------------------------------------------------
         V_psu = self.measureV() # create a current voltage variable
+        tol = 0.003 # add a voltage tolerance for the stopping criteria in the while loop below.
         cap_charge = 0 # initialize the charge capacity
         counter = 0
         t_prev = 0 # intialize a variable that contains the previous time step's time needed for cap measurements
-        while V_psu <= V_upper:
+        while V_psu < (V_upper - tol):
             t = time.time() - t_start  # variable that holds the current time in seconds
             if measuring_instr == 'same':
                 V = V_psu = self.measureV()

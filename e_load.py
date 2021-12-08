@@ -5,18 +5,17 @@ import pandas as pd
 
 class E_load:
     """
-    The discharging algorithm
-    1. Input parameters (t_wait, V_stop, dt, I_dis)
-    2. Wait for t_wait while measuring the voltage every dt
-    3. Start CC discharging until V_cut, while measuring time, current, voltage
-    4. Start CC discharging until I_cut, while measuring time, current, voltage
-    5. Wait for t_wait while measuring voltage
+    The class structure for the electronic load.
     """
     def __init__(self, id):
         self.id = id
 
     @property
     def load(self):
+        """
+        E-load initialization
+        :return: an e-load object
+        """
         rm = pyvisa.ResourceManager()
         return rm.open_resource(self.id)
 
@@ -55,6 +54,16 @@ class E_load:
         cap_discharge_list.append(cap_discharge)
 
     def cycle(self, t_wait, V_cut, I_cut, I_dis, dt, cap_charge_init):
+        """
+        CC-CV discharge
+        :param t_wait: the wait period between the charging and the discharging step
+        :param V_cut: Battery upper terminal voltage
+        :param I_cut: Battery cut-off current for the CV-step
+        :param I_dis: Battery discharge current
+        :param dt: measurement interval
+        :param cap_charge_init: the charge capacity before discharge
+        :return: potential, current, and capacities data during battery discharge
+        """
         t = 0
         t_list, V_list, I_list, status_list = [], [], [], []
         cap_charge_list, cap_discharge_list = [], []

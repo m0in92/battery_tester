@@ -1,12 +1,12 @@
 from cycling import Cycling
-import time
+
 
 #Input parameters
 #--------------------------------------------------------
 dt = 30
 V_upper = 3.65 # battery upper terminal voltage
 C_rate = 1.5
-I_charge = I_dis = C_rate / 30 #Discharge and charge currents
+I_charge = I_dis = C_rate/3 #Discharge and charge currents
 I_cut = 0.1
 t_wait = 2*60*60 #Wait period in between the charge and discharge steps within cycle
 V_cut = 2 # battery lower terminal voltage
@@ -31,25 +31,17 @@ cycle1 = Cycling(t_wait_init= t_wait_init,
                  I_dis= I_dis)
 
 """
-Step 1: Discharge step 
-##Fully discharge the battery at C/30 after waiting for 2 hours
+Step 1:
+--------------------------------------------------------------
+Fully charge the cell
 """
-# time.sleep(t_wait)
-# cycle1.discharge_CC(return_output= False)
+cycle1.charge(return_output=False)
 
 """
-Step 2: CC-charging
-##Fully charge battery at C/30 after waiting for 2 hours
+Step 2: Pulse charging
+------------------------------------------------------------------
+1. Let cell rest for 5 minutes
+2. Let the cell discharge at constant currrent for 15 miuntes
+3. Let cell rest for 20 minutes
+** potential and current are measured at each steps at suitable intervals
 """
-# time.sleep(t_wait)
-# df = cycle1.charge_CC(measuring_instrument= 'eload',return_output= True)
-# df.to_csv(f'data/{filename_charge}.csv', index= False)
-
-"""
-Step 3: CC-discharging
-##Fully discharge battery after waiting for 2 hours
-"""
-# time.sleep(t_wait)
-df = cycle1.discharge_CC(return_output= True)
-df.to_csv(f'data/{filename_discharge}.csv', index= False)
-
